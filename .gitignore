@@ -1,0 +1,11 @@
+# OS generated files #
+######################
+.DS_Store
+.DS_Store?
+
+.ipynb_checkpoints/
+.vscode/
+__pycache__/
+tutorial.ipynb
+#img_input/img3.png
+models/detection_retina_256.pth
