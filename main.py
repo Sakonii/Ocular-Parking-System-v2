@@ -1,17 +1,18 @@
 import argparse
 
 from detection import Detection
-#from inference import ImageObjects
-#from inpainting import FeatureLoss
+#from inference import Inference
+from cv2 import cv2
+# from inpainting import FeatureLoss
 
 
 def main():
-
-    Detection(
-       fname_img=args.image, model_pth=args.model_detection
-    ).start_detection()
-    # ImageObjects(img, mask, classes, model=args.model_inpainting).inference()
+    reference_img = cv2.imread('./img_input/' + args.image)
+    detection = Detection(model_pth=args.model_detection)
+    detection.start_detection(img=reference_img)
+    #Inference(reference_img=args.image, detection_obj=detection).start_inference()
     return
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Image File Name")

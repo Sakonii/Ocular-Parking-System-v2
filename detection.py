@@ -1,7 +1,16 @@
 import numpy as np
 from cv2 import cv2
 
-from fastai.vision import open_image, image2np, defaults, create_body, models, torch
+from fastai.vision import (
+    open_image,
+    image2np,
+    defaults,
+    create_body,
+    models,
+    torch,
+    pil2tensor,
+    Image,
+)
 from functions.model import RetinaNet, process_output, nms
 
 
@@ -9,18 +18,9 @@ class Detection:
     "A Wrapper for Detection related objects"
 
     def __init__(
-        self,
-        fname_img,
-        model_pth,
-        path_to_weights="./models/",
-        path_to_input="./img_input/",
+        self, model_pth, path_to_weights="./models/",
     ):
         self.model_path = path_to_weights + model_pth
-        self.img_path = path_to_input + fname_img
-
-        self.img = open_image(self.img_path)
-        self.img_model = self.img.clone()
-        self.img_display = self.img.clone()
 
         # Load Detection Model
         defaults.device = torch.device("cpu")
@@ -76,12 +76,17 @@ class Detection:
             self.bboxes[:, 2:] = self.bboxes[:, 2:] * t_sz
             self.bboxes = self.bboxes.long()
 
+    def np_to_tensor(self):
+        "Convert np.ndarray to Pytorch Compatible Image"
+        self.img_display = np.copy(self.img)
+        self.img_model = Image(pil2tensor(self.img, np.float32).div_(255))
+
     def tensor_to_np(self):
         "Convert Tensors to OpenCV Comaptible Types"
 
-        self.img = image2np(self.img.data * 255).astype(np.uint8)
-        cv2.cvtColor(src=self.img, dst=self.img, code=cv2.COLOR_BGR2RGB)
-        self.img_display = np.copy(self.img)
+        # self.img = image2np(self.img.data * 255).astype(np.uint8)
+        # cv2.cvtColor(src=self.img, dst=self.img, code=cv2.COLOR_BGR2RGB)
+        # self.img_display = np.copy(self.img)
 
         self.bboxes = self.bboxes.tolist()
         self.preds = self.preds.tolist()
@@ -91,6 +96,7 @@ class Detection:
         _bboxes = []
         for _bbox in self.bboxes:
             top_left = (_bbox[1], _bbox[0])
+
             bottom_right = (
                 _bbox[1] + int(_bbox[3] / 1.7),
                 _bbox[0] + int(_bbox[2] / 1.7),
@@ -101,10 +107,9 @@ class Detection:
     def show(self):
         "Displays content input image and its corresponding detected objects"
 
-        for i in range(len(self.preds)):
-            # For every objectIndex
-            top_left = self.bboxes[i][0]
-            bottom_right = self.bboxes[i][1]
+        for bbox in self.bboxes:
+            top_left = bbox[0]
+            bottom_right = bbox[1]
 
             cv2.rectangle(
                 self.img_display,
@@ -113,8 +118,8 @@ class Detection:
                 color=(0, 200, 255),
                 thickness=2,
             )
-            #cv2.circle(self.img_display, top_left, 2, (255, 0, 0), thickness=-1)
-            #cv2.circle(self.img_display, bottom_right, 2, (255, 0, 0), thickness=-1)
+            # cv2.circle(self.img_display, top_left, 2, (255, 0, 0), thickness=-1)
+            # cv2.circle(self.img_display, bottom_right, 2, (255, 0, 0), thickness=-1)
 
             # text = f"{classes[preds[i]]} {scores[i]}"
             # cv2.putText(img, text, top_left, cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 2)
@@ -122,14 +127,17 @@ class Detection:
         cv2.waitKey(0)
         cv2.destroyAllWindows()
 
-    def start_detection(self):
-        "Returns np.ndarray content input image, its segmented mask and the number of classes in the model"
-
+    def start_detection(self, img):
+        "Updates bboxes, preds and scores for next video frame"
+        self.img = img
+        self.np_to_tensor()
+        
         with torch.no_grad():
             self.model_pred = self.model(self.img_model.data.unsqueeze_(0))
         self.bboxes, self.scores, self.preds = process_output(
             self.model_pred, i=0, detect_thresh=0.85
         )
+        print(self.bboxes)
         self.supress_outputs()
         self.tensor_to_np()
         self.show()

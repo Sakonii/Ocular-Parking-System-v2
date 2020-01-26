@@ -13,7 +13,7 @@ sudo apt-get install python3-pip
 python3.7 -m pip install pip
 
 # Pytorch
-sudo -H python3.7 -m pip install torch==1.2.0+cpu torchvision==0.4.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
+sudo -H python3.7 -m pip install torch==1.3.0+cpu torchvision==0.4.1+cpu -f https://download.pytorch.org/whl/torch_stable.html
 # For GPU or other version: https://pytorch.org/get-started/locally/
 
 # FastAI
