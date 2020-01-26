@@ -137,7 +137,6 @@ class Detection:
         self.bboxes, self.scores, self.preds = process_output(
             self.model_pred, i=0, detect_thresh=0.85
         )
-        print(self.bboxes)
         self.supress_outputs()
         self.tensor_to_np()
-        self.show()
+        # self.show()
