@@ -6,11 +6,11 @@ from cv2 import cv2
 
 
 def main():
-    #reference_img = cv2.imread("./img_input/" + args.image)
-    #detection = Detection(model_pth=args.model_detection)
-    #detection.start_detection(img=reference_img)
+    reference_img = cv2.imread("./img_input/" + args.image)
+    detection = Detection(model_pth=args.model_detection)
+    detection.start_detection(img=reference_img)
     Inference(
-        reference_img=args.image, content_img=args.image, #model=detection
+        reference_img=args.image, content_img=args.image, model=detection
     ).start_inference()
     return
 
