@@ -33,7 +33,7 @@ class Inference:
         self.img_display = np.copy(self.img)
 
         self.ui = UI()
-        #self.detection = model
+        # self.detection = model
 
         # This will be the default window for inference
         cv2.namedWindow(winname="Ocular Parking System")
@@ -68,7 +68,7 @@ class Inference:
         print(
             "Usage:\n\t1.) Register 4 Left-clicks (Rectangle co-ordinates) to add parking regions \n\t2.) Right-click to delete a region  \n\t3.) Press 'y' to continue"
         )
-        
+
         while True:
             cv2.imshow(winname="Ocular Parking System", mat=self.reference_img)
             if cv2.waitKey(60) & 0xFF == ord("y"):
@@ -79,27 +79,35 @@ class Inference:
     def mouse_to_region(self):
         " Adds 'cv2.RotatedRect' Region On Mouse-Clicked 'mouseCoords' "
 
-        points = self.ui.mouseCoords
-        for point in points:
-            sum_x += point[0]
-            sum_y += point[1]
+        bbox = cv2.minAreaRect(np.array(self.ui.mouseCoords))
+        contour = np.intp(cv2.boxPoints(bbox))
 
-        center_x = sum_x/4
-        center_y = sum_y/4
+        cv2.drawContours(
+            image=self.reference_img,
+            contours=[contour],
+            contourIdx=-1,
+            color=(75, 150, 0),
+            thickness=2,
+            lineType=cv2.LINE_AA,
+        )
+        self.ui.bboxGreen.append(contour)
+        self.ui.clickCount = 0
+        self.ui.mouseCoords = []
 
-        angle  = (math.atan2(points[1][1] - points[2][1], points[1][0] - points[2][0]))
-        height = abs(points[1][1] - points[2][1])
-        width  = abs(points[1][0] - points[0][0])
+        print("\nCo-ordinates Added!\n\t{contour}")
+        print(
+            "\n\nUsage:\n\t1.) Register 4 Left-clicks (Rectangle co-ordinates) to add parking regions \n\t2.) Right-click to delete a region  \n\t3.) Press 'y' to continue"
+        )
 
     def mouse_events(self, event, x, y, flags, param):
         "Mouse callback function definition"
 
         if event == cv2.EVENT_LBUTTONDOWN:
             "Adds co-ordinates from mouse input (Left-Click)"
-            self.ui.mouseCoords.append((x,y))
+            self.ui.mouseCoords.append([x, y])
             self.ui.clickCount += 1
             print(f"Click! {self.ui.clickCount}")
-            cv2.circle(self.reference_img, (x,y), 2, (0,200,255))
+            cv2.circle(self.reference_img, (x, y), 2, (0, 200, 255))
 
             # self.obj_selected = self.contour_containing_point(x, y)
             # self.show_objects(fromClean=True)
@@ -111,10 +119,10 @@ class Inference:
             "Later"
 
         if self.ui.clickCount >= 4:
-            "Later"
+            self.mouse_to_region()
             # Check for 4 clicks (of a rectangle) for LBUTTON event
             # self.mouse_to_region()
-            
+
     def start_inference(self):
         "Mouse-Events Ready User Interface"
         self.parkable_region_inference()
