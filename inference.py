@@ -12,9 +12,9 @@ class UI:
         self.mouseCoords = []
         self.selectedContour = np.intp()
         # Bounding Boxes For Various Objects
-        self.bboxGreen = []  # Parkable Space
-        self.bboxYellow = []  # Detected Vehicle
-        self.bboxRed = []  # Occupied Space
+        self.bboxesGreen = []  # Parkable Space
+        self.bboxesRed = []  # Occupied Space
+        # self.detection.bboxes = []  # Detected Vehicle
 
 
 class Inference:
@@ -65,50 +65,90 @@ class Inference:
                 thickness=2,
                 lineType=cv2.LINE_AA,
             )
-            # cv2.circle(self.img_display, top_left, 2, (255, 0, 0), thickness=-1)
-            # cv2.circle(self.img_display, bottom_right, 2, (255, 0, 0), thickness=-1)
-
             # text = f"{classes[preds[i]]} {scores[i]}"
             # cv2.putText(img, text, top_left, cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 2)
 
-    def contour_containing_point(self, x, y, contours, boolDebug=False):
-        "Returns the contour under which the co-ordinate falls"
+    def contour_containing_point(self, x, y, contours, boolDebug=False, bool=False):
+        "Returns contour under which the co-ordinate lies"
         for contour in contours:
             if (
                 cv2.pointPolygonTest(contour=contour, pt=(x, y), measureDist=False) >= 0
                 and contour is not self.ui.selectedContour
             ):
                 if boolDebug:
-                    print(f"Removed:\n{contour}")
-                return contour
+                    print(contour)
+                return True if bool else contour
             else:
                 pass
-        return []
+        return False if bool else []
 
     def remove_contour_containing_point(self, x, y, contours, boolDebug=False):
         "Removes a detected 'contour' region from co-ordinate x y"
         for contour in contours:
             if cv2.pointPolygonTest(contour=contour, pt=(x, y), measureDist=False) >= 0:
                 if boolDebug:
-                    print(contour)
+                    print(f"Removed:\n{contour}")
                 contours.remove(contour)
             else:
                 pass
 
+    def generate_points_to_check(self, bbox, boolDebug=False):
+        "Generates list of co-ordinates from bottom-center to center of bbox/rectangle"
+        center_x = int(
+            bbox[1][0] - (bbox[1][0] - bbox[0][0]) / 2
+        )  # center = x2 - (x2-x1)/2
+        center_y = int(bbox[1][1] - (bbox[1][1] - bbox[0][1]) / 2)
+        center_y_bottom = bbox[1][1]
+        # Generate 10 linspaced y-coordinates
+        ysToCheck = np.linspace(center_y_bottom, center_y, num=10, dtype=int)
+        pointsToCheck = []
+        for yToCheck in ysToCheck:
+            pointsToCheck.append([center_x, yToCheck])
+        # Print Co-ordinates
+        if boolDebug:
+            print(f"Center: {center_x, center_y}")
+            print(f"Center Bottom: {center_x, center_y_bottom}")
+            print(f"Generated: {pointsToCheck}")
+        return pointsToCheck
+
+    def occupied_space_detection(self):
+        "Updates List Of Red/Occupied/bboxRed Regions On Obstruction Detection"
+        for bboxGreen in self.ui.bboxesGreen:  # for every bboxGreen
+            if np.any(bboxGreen == self.ui.bboxesRed):  # if bboxGreen in bboxesRed
+                continue
+            for bboxYellow in self.detection.bboxes:  # for every bboxYellow
+                pointsToCheck = self.generate_points_to_check(bboxYellow)
+                for point in pointsToCheck:  # for points: center to bottom-center
+                    if self.contour_containing_point(  # If point lies in bboxGreen
+                        point[0], point[1], [bboxGreen], bool=True
+                    ):
+                        self.ui.bboxesRed.append(bboxGreen)
+                        break
+                else:
+                    continue
+                break
+
     def parkable_region_inference(self):
-        "Inference for manually defining green regions"
+        "Inference For Manually Calibrating Green Regions"
         print(
             "Usage:\n\t1.) Register 4 Left-clicks (Rectangle co-ordinates) to add parking regions"
             "\n\t2.) Right-click to delete a region  \n\t3.) Press 'y' to continue"
         )
-
+        # Calibration Inference
         while True:
             self.reference_img_display = np.copy(self.reference_img)
+            self.occupied_space_detection()
             # Draw Green Parkable Regions
             self.draw_contours(
-                contours=self.ui.bboxGreen,
+                contours=self.ui.bboxesGreen,
                 img=self.reference_img_display,
                 color=(75, 150, 0),
+            )
+            # Draw Red Occupied Regions
+            self.draw_contours(
+                contours=self.ui.bboxesRed,
+                img=self.reference_img_display,
+                color=(0, 50, 255),
             )
             # Draw Yellow Detected Bboxes
             self.draw_bboxes(self.reference_img_display, color=(0, 200, 255))
@@ -125,7 +165,7 @@ class Inference:
         bbox = cv2.minAreaRect(np.array(self.ui.mouseCoords))
         self.ui.selectedContour = np.intp(cv2.boxPoints(bbox))
         # Append To Original UI List
-        self.ui.bboxGreen.append(self.ui.selectedContour)
+        self.ui.bboxesGreen.append(self.ui.selectedContour)
         # Reset Mouse Click Counter
         self.ui.clickCount = 0
         self.ui.mouseCoords = []
@@ -148,8 +188,8 @@ class Inference:
 
         if event == cv2.EVENT_RBUTTONDOWN:
             "Removes a detected 'contour' region from co-ordinate x y"
-            self.remove_contour_containing_point(x, y, self.ui.bboxGreen)
-            self.remove_contour_containing_point(x, y, self.ui.bboxRed)
+            self.remove_contour_containing_point(x, y, self.ui.bboxesGreen)
+            self.remove_contour_containing_point(x, y, self.ui.bboxesRed)
 
         if event == cv2.EVENT_LBUTTONUP:
             "Later"

@@ -93,7 +93,7 @@ class Detection:
             top_left = (_bbox[1], _bbox[0])
             bottom_right = (
                 _bbox[1] + int(_bbox[3] / 1.7),
-                _bbox[0] + int(_bbox[2] / 1.7),
+                _bbox[0] + int(_bbox[2] / 1.6),
             )
             _bboxes.append([top_left, bottom_right])
         self.bboxes = _bboxes
