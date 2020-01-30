@@ -27,17 +27,21 @@ class Inference:
         path_to_input="./img_input/",
         content_img="img.png",
     ):
-        self.reference_img = cv2.imread(path_to_input + content_img)
-        self.img = cv2.imread(path_to_input + content_img)
-        self.img_display = np.copy(self.img)
+        self.cap = cv2.VideoCapture(path_to_input + content_img)
+        _, self.reference_img = self.cap.read()  # First Frame OF Video
+        self.img = None
+        self.img_display = None
         # Instantiate / Import UI Components and Detection Model
         self.ui = UI()
         self.detection = model
+        # Frame Counter For FPS
+        self.frameCounter = 0
+        self.updateTimeSec = 5.5
         # This will be the default window for inference
         cv2.namedWindow(winname="Ocular Parking System")
-        # self.bool_segment = cv2.createTrackbar(
-        #     "Show Segments", "Image Objects", 0, 1, self.detection.detect_thresh
-        # )
+        self.ticketMode = cv2.createTrackbar(
+            "Ticket Mode", "Ocular Parking System", 0, 1, lambda *_, **__: None
+        )
         cv2.setMouseCallback("Ocular Parking System", self.mouse_events)
 
     def draw_contours(self, contours, img, color=(75, 150, 0)):
@@ -73,7 +77,6 @@ class Inference:
         for contour in contours:
             if (
                 cv2.pointPolygonTest(contour=contour, pt=(x, y), measureDist=False) >= 0
-                and contour is not self.ui.selectedContour
             ):
                 if boolDebug:
                     print(contour)
@@ -113,6 +116,23 @@ class Inference:
 
     def occupied_space_detection(self):
         "Updates List Of Red/Occupied/bboxRed Regions On Obstruction Detection"
+        if not self.ticketMode:
+            for bboxRed in self.ui.bboxesRed:
+                boolRedInNewFrame = False
+                for bboxYellow in self.detection.bboxes:
+                    pointsToCheck = self.generate_points_to_check(bboxYellow)
+                    for point in pointsToCheck:  # for points: center to bottom-center
+                        if self.contour_containing_point(
+                            point[0], point[1], [bboxRed], bool=True
+                        ):
+                            boolRedInNewFrame = True
+                            break
+                    else:
+                        continue
+                    break
+                if not (boolRedInNewFrame):
+                    self.ui.bboxesRed.remove(bboxRed)
+
         for bboxGreen in self.ui.bboxesGreen:  # for every bboxGreen
             if np.any(bboxGreen == self.ui.bboxesRed):  # if bboxGreen in bboxesRed
                 continue
@@ -128,6 +148,33 @@ class Inference:
                     continue
                 break
 
+    def video_inference(self):
+        "Inference For The Main Program"
+        _, self.img = self.cap.read()
+        self.img_display = np.copy(self.img)
+        # Frame Skipping
+        if (self.frameCounter == 0) | (
+            self.frameCounter % (30 * self.updateTimeSec) == 0
+        ):
+            self.detection.start_detection(self.img)
+            self.occupied_space_detection()
+        self.frameCounter += 1
+        # Draw Green Parkable Regions
+        self.draw_contours(
+            contours=self.ui.bboxesGreen, img=self.img_display, color=(75, 150, 0),
+        )
+        # Draw Red Occupied Regions
+        self.draw_contours(
+            contours=self.ui.bboxesRed, img=self.img_display, color=(0, 50, 255),
+        )
+        # Draw Yellow Detected Bboxes
+        self.draw_bboxes(self.img_display, color=(0, 200, 255))
+        # Park-able Region Detection Window
+        cv2.imshow(winname="Ocular Parking System", mat=self.img_display)
+        if cv2.waitKey(60) & 0xFF == ord("q"):
+            cv2.destroyAllWindows()
+            quit()
+
     def parkable_region_inference(self):
         "Inference For Manually Calibrating Green Regions"
         print(
@@ -137,7 +184,6 @@ class Inference:
         # Calibration Inference
         while True:
             self.reference_img_display = np.copy(self.reference_img)
-            self.occupied_space_detection()
             # Draw Green Parkable Regions
             self.draw_contours(
                 contours=self.ui.bboxesGreen,
@@ -150,14 +196,11 @@ class Inference:
                 img=self.reference_img_display,
                 color=(0, 50, 255),
             )
-            # Draw Yellow Detected Bboxes
-            self.draw_bboxes(self.reference_img_display, color=(0, 200, 255))
             # Park-able Region Detection Window
             cv2.imshow(winname="Ocular Parking System", mat=self.reference_img_display)
             if cv2.waitKey(60) & 0xFF == ord("y"):
                 break
-
-        cv2.destroyAllWindows()
+        # cv2.destroyAllWindows()
 
     def mouse_to_region(self):
         " Adds 'cv2.RotatedRect' Region On Mouse-Clicked 'mouseCoords' "
@@ -201,3 +244,6 @@ class Inference:
     def start_inference(self):
         "Mouse-Events Ready User Interface"
         self.parkable_region_inference()
+        while self.cap.isOpened():
+            self.video_inference()
+        

@@ -6,11 +6,9 @@ from cv2 import cv2
 
 
 def main():
-    reference_img = cv2.imread("./img_input/" + args.image)
     detection = Detection(model_pth=args.model_detection)
-    detection.start_detection(img=reference_img)
     Inference(
-        reference_img=args.image, content_img=args.image, model=detection
+        reference_img=args.video, content_img=args.video, model=detection
     ).start_inference()
     return
 
@@ -18,9 +16,9 @@ def main():
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Image File Name")
     parser.add_argument(
-        "--image",
+        "--video",
         type=str,
-        default="img.png",
+        default="videoplayback2.mp4",
         help="Enter the reference image file name located at ./img_input",
     )
     parser.add_argument(
