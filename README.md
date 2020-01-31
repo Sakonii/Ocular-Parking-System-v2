@@ -44,8 +44,9 @@ cd ..
 
 ``` bash
 # Example:
-python3.7 main.py --image img.png
+python3.7 main.py --video videoplayback2.mp4
 
 # CLI Arguments:
-* '--image' : Filename of input image located at img_input directory
+* '--video' : Filename of input video located at img_input directory
+* '--model_detection' : Filename of weights associated with detection
 ```
