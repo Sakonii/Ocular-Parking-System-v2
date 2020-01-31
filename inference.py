@@ -16,6 +16,10 @@ class UI:
         self.bboxesRed = []  # Occupied Space
         # self.detection.bboxes = []  # Detected Vehicle
 
+    def reset_mouse_coords(self):
+        self.clickCount = 0
+        self.mouseCoords = []
+
 
 class Inference:
     "A Wrapper for Inference"
@@ -23,11 +27,10 @@ class Inference:
     def __init__(
         self,
         model,
-        reference_img="img.png",
         path_to_input="./img_input/",
-        content_img="img.png",
+        content_video="img.png",
     ):
-        self.cap = cv2.VideoCapture(path_to_input + content_img)
+        self.cap = cv2.VideoCapture(path_to_input + content_video)
         _, self.reference_img = self.cap.read()  # First Frame OF Video
         self.img = None
         self.img_display = None
@@ -36,12 +39,11 @@ class Inference:
         self.detection = model
         # Frame Counter For FPS
         self.frameCounter = 0
-        self.updateTimeSec = 5.5
         # This will be the default window for inference
         cv2.namedWindow(winname="Ocular Parking System")
-        self.ticketMode = cv2.createTrackbar(
-            "Ticket Mode", "Ocular Parking System", 0, 1, lambda *_, **__: None
-        )
+        # Trackbar Callbacks
+        cv2.createTrackbar("Ticket Mode", "Ocular Parking System", 0, 1, lambda *_, **__: None)
+        cv2.createTrackbar("Frames Per Detection", "Ocular Parking System", 1, 10, lambda *_, **__: None)
         cv2.setMouseCallback("Ocular Parking System", self.mouse_events)
 
     def draw_contours(self, contours, img, color=(75, 150, 0)):
@@ -75,9 +77,7 @@ class Inference:
     def contour_containing_point(self, x, y, contours, boolDebug=False, bool=False):
         "Returns contour under which the co-ordinate lies"
         for contour in contours:
-            if (
-                cv2.pointPolygonTest(contour=contour, pt=(x, y), measureDist=False) >= 0
-            ):
+            if cv2.pointPolygonTest(contour=contour, pt=(x, y), measureDist=False) >= 0:
                 if boolDebug:
                     print(contour)
                 return True if bool else contour
@@ -114,6 +114,17 @@ class Inference:
             print(f"Generated: {pointsToCheck}")
         return pointsToCheck
 
+    def remove_np_array_from_list(self, listOfArray, npArray):
+        # Custom List Item Removal Function
+        ind = 0
+        size = len(listOfArray)
+        while ind != size and not np.array_equal(listOfArray[ind], npArray):
+            ind += 1
+        if ind != size:
+            listOfArray.pop(ind)
+        else:
+            raise ValueError("array not found in list.")
+
     def occupied_space_detection(self):
         "Updates List Of Red/Occupied/bboxRed Regions On Obstruction Detection"
         if not self.ticketMode:
@@ -130,8 +141,8 @@ class Inference:
                     else:
                         continue
                     break
-                if not (boolRedInNewFrame):
-                    self.ui.bboxesRed.remove(bboxRed)
+                if not boolRedInNewFrame:
+                    self.remove_np_array_from_list(self.ui.bboxesRed, bboxRed)
 
         for bboxGreen in self.ui.bboxesGreen:  # for every bboxGreen
             if np.any(bboxGreen == self.ui.bboxesRed):  # if bboxGreen in bboxesRed
@@ -152,12 +163,20 @@ class Inference:
         "Inference For The Main Program"
         _, self.img = self.cap.read()
         self.img_display = np.copy(self.img)
+        # Trackbar Callbacks
+        self.ticketMode = cv2.getTrackbarPos('Ticket Mode', 'Ocular Parking System')
+        self.updateTimeSec = cv2.getTrackbarPos('Frames Per Detection', 'Ocular Parking System')
         # Frame Skipping
         if (self.frameCounter == 0) | (
             self.frameCounter % (30 * self.updateTimeSec) == 0
         ):
             self.detection.start_detection(self.img)
             self.occupied_space_detection()
+        # Draw Yellow Detected Bboxes
+        if (self.frameCounter == 0) | (
+            self.frameCounter % (30 * self.updateTimeSec) <= 40
+        ):
+            self.draw_bboxes(self.img_display, color=(0, 200, 255))
         self.frameCounter += 1
         # Draw Green Parkable Regions
         self.draw_contours(
@@ -167,8 +186,11 @@ class Inference:
         self.draw_contours(
             contours=self.ui.bboxesRed, img=self.img_display, color=(0, 50, 255),
         )
-        # Draw Yellow Detected Bboxes
-        self.draw_bboxes(self.img_display, color=(0, 200, 255))
+        # Print Occupancy Information
+        print(f'\n\n\n\nTotal parking Spots   = {len(self.ui.bboxesGreen)}')
+        print(f'No. of Spots Occupied = {len(self.ui.bboxesRed)}')
+        print(f'Total available Spots = {len(self.ui.bboxesGreen) - len(self.ui.bboxesRed)}')
+        print(f'\nMiddle-Mouse Click to reserve a space')
         # Park-able Region Detection Window
         cv2.imshow(winname="Ocular Parking System", mat=self.img_display)
         if cv2.waitKey(60) & 0xFF == ord("q"):
@@ -190,12 +212,6 @@ class Inference:
                 img=self.reference_img_display,
                 color=(75, 150, 0),
             )
-            # Draw Red Occupied Regions
-            self.draw_contours(
-                contours=self.ui.bboxesRed,
-                img=self.reference_img_display,
-                color=(0, 50, 255),
-            )
             # Park-able Region Detection Window
             cv2.imshow(winname="Ocular Parking System", mat=self.reference_img_display)
             if cv2.waitKey(60) & 0xFF == ord("y"):
@@ -210,8 +226,7 @@ class Inference:
         # Append To Original UI List
         self.ui.bboxesGreen.append(self.ui.selectedContour)
         # Reset Mouse Click Counter
-        self.ui.clickCount = 0
-        self.ui.mouseCoords = []
+        self.ui.reset_mouse_coords()
 
         print(f"\nCo-ordinates Added!\n{self.ui.selectedContour}")
         print(
@@ -234,8 +249,17 @@ class Inference:
             self.remove_contour_containing_point(x, y, self.ui.bboxesGreen)
             self.remove_contour_containing_point(x, y, self.ui.bboxesRed)
 
-        if event == cv2.EVENT_LBUTTONUP:
-            "Later"
+        if  event == cv2.EVENT_MBUTTONDOWN:
+            "Reserve a parking space"
+            print('hmm')
+            self.ui.reset_mouse_coords()
+            tempContour = self.contour_containing_point(x, y, self.ui.bboxesGreen)
+            if tempContour == []:
+                pass
+            elif self.contour_containing_point(x, y, self.ui.bboxesRed, bool=True):
+                self.remove_np_array_from_list(self.ui.bboxesRed, tempContour)
+            else:
+                self.ui.bboxesRed.append(tempContour)
 
         if self.ui.clickCount >= 4:
             # Check for 4 clicks (of a rectangle) for LBUTTON event
@@ -246,4 +270,3 @@ class Inference:
         self.parkable_region_inference()
         while self.cap.isOpened():
             self.video_inference()
-        

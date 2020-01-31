@@ -8,7 +8,7 @@ from cv2 import cv2
 def main():
     detection = Detection(model_pth=args.model_detection)
     Inference(
-        reference_img=args.video, content_img=args.video, model=detection
+        content_video=args.video, model=detection
     ).start_inference()
     return
 

@@ -84,15 +84,16 @@ class Detection:
         # self.img = image2np(self.img.data * 255).astype(np.uint8)
         # cv2.cvtColor(src=self.img, dst=self.img, code=cv2.COLOR_BGR2RGB)
         # self.img_display = np.copy(self.img)
-        self.bboxes = self.bboxes.tolist()
-        self.preds = self.preds.tolist()
-        self.scores = self.scores.tolist()
+        if not isinstance(self.bboxes, list):
+            self.bboxes = self.bboxes.tolist()
+            self.preds = self.preds.tolist()
+            self.scores = self.scores.tolist()
         # Convert bboxes to list of top-left and bottom right co-ordinates
         _bboxes = []
         for _bbox in self.bboxes:
             top_left = (_bbox[1], _bbox[0])
             bottom_right = (
-                _bbox[1] + int(_bbox[3] / 1.7),
+                _bbox[1] + int(_bbox[3] / 2),
                 _bbox[0] + int(_bbox[2] / 1.5),
             )
             _bboxes.append([top_left, bottom_right])
