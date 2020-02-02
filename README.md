@@ -52,16 +52,16 @@ python3.7 main.py --video videoplayback2.mp4
 
 * Parkable Region Calibration
 
-![Calibration](https://github.com/Skelliger7/Ocular-Parking-System-v2/tree/master/vid_output/1_calibrate.gif)
+<img src="https://raw.githubusercontent.com/Skelliger7/Ocular-Parking-System-v2/master/vid_output/1_calibrate.gif?token=AIORJVKTQLFI5EY4YVZS4UK6G2NLQ" width="320" height="289">
 
 * Inference
 
-![Inference](https://github.com/Skelliger7/Ocular-Parking-System-v2/tree/master/vid_output/2_inference.gif)
+<img src="https://github.com/Skelliger7/Ocular-Parking-System-v2/raw/master/vid_output/2_inference.gif" width="320" height="289">
 
 * Reservation
 
-![Reservation](https://github.com/Skelliger7/Ocular-Parking-System-v2/tree/master/vid_output/3_reservation.gif)
+<img src="https://raw.githubusercontent.com/Skelliger7/Ocular-Parking-System-v2/master/vid_output/3_reservation.gif?token=AIORJVPSVMPQBJLMLDX5GFC6G2N6Y" width="320" height="321">
 
 * Overall
 
-![overall](https://github.com/Skelliger7/Ocular-Parking-System-v2/tree/master/vid_output/4_overall.gif)
+<img src="https://github.com/Skelliger7/Ocular-Parking-System-v2/blob/master/vid_output/4_overall.gif?raw=true" width="320" height="321">
