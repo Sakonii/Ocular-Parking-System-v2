@@ -60,7 +60,7 @@ python3.7 main.py --video videoplayback2.mp4
 
 * Reservation
 
-<img src="https://raw.githubusercontent.com/Skelliger7/Ocular-Parking-System-v2/master/vid_output/3_reservation.gif?token=AIORJVPSVMPQBJLMLDX5GFC6G2N6Y" width="320" height="321">
+<img src="https://github.com/Skelliger7/Ocular-Parking-System-v2/raw/master/vid_output/3_reservation.gif" width="320" height="321">
 
 * Overall
 
