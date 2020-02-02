@@ -52,7 +52,7 @@ python3.7 main.py --video videoplayback2.mp4
 
 * Parkable Region Calibration
 
-<img src="https://raw.githubusercontent.com/Skelliger7/Ocular-Parking-System-v2/master/vid_output/1_calibrate.gif?token=AIORJVKTQLFI5EY4YVZS4UK6G2NLQ" width="320" height="289">
+<img src="https://raw.githubusercontent.com/Skelliger7/Ocular-Parking-System-v2/master/vid_output/1_calibrate.gif?token=AIORJVIVAXLYZ5OHFI6FOFS6G2OZW" width="320" height="289">
 
 * Inference
 
