@@ -128,7 +128,7 @@ class Detection:
         with torch.no_grad():
             self.model_pred = self.model(self.img_model.data.unsqueeze_(0))
         self.bboxes, self.scores, self.preds = process_output(
-            self.model_pred, i=0, detect_thresh=0.55
+            self.model_pred, i=0, detect_thresh=0.51
         )
         self.supress_outputs()
         self.tensor_to_np()

@@ -47,3 +47,21 @@ python3.7 main.py --video videoplayback2.mp4
 * '--video' : Filename of input video located at img_input directory
 * '--model_detection' : Filename of weights associated with detection
 ```
+
+## Results
+
+* Parkable Region Calibration
+
+![Calibration](https://github.com/Skelliger7/Ocular-Parking-System-v2/tree/master/vid_output/1_calibrate.gif)
+
+* Inference
+
+![Inference](https://github.com/Skelliger7/Ocular-Parking-System-v2/tree/master/vid_output/2_inference.gif)
+
+* Reservation
+
+![Reservation](https://github.com/Skelliger7/Ocular-Parking-System-v2/tree/master/vid_output/3_reservation.gif)
+
+* Overall
+
+![overall](https://github.com/Skelliger7/Ocular-Parking-System-v2/tree/master/vid_output/4_overall.gif)

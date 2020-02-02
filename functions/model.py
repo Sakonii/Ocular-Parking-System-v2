@@ -151,8 +151,16 @@ class RetinaNetFocalLoss(nn.Module):
         self.sizes = sizes
         self.anchors = create_anchors(sizes, self.ratios, self.scales).to(device)
 
+    # def _unpad(self, bbox_tgt, clas_tgt):
+    #     i = torch.min(torch.nonzero(clas_tgt - self.pad_idx))
+    #     return tlbr2cthw(bbox_tgt[i:]), clas_tgt[i:] - 1 + self.pad_idx
+
     def _unpad(self, bbox_tgt, clas_tgt):
-        i = torch.min(torch.nonzero(clas_tgt - self.pad_idx))
+        nonzero = torch.nonzero(clas_tgt - self.pad_idx)
+        if nonzero.shape[0] > 0:
+            i = torch.min(nonzero)
+        else:
+            i = clas_tgt.shape[0]
         return tlbr2cthw(bbox_tgt[i:]), clas_tgt[i:] - 1 + self.pad_idx
 
     def _focal_loss(self, clas_pred, clas_tgt):

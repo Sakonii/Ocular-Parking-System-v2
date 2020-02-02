@@ -42,7 +42,7 @@ class Inference:
         # This will be the default window for inference
         cv2.namedWindow(winname="Ocular Parking System")
         # Trackbar Callbacks
-        cv2.createTrackbar("Ticket Mode", "Ocular Parking System", 0, 1, lambda *_, **__: None)
+        cv2.createTrackbar("Reservation Mode", "Ocular Parking System", 0, 1, lambda *_, **__: None)
         cv2.createTrackbar("Frames Per Detection", "Ocular Parking System", 1, 10, lambda *_, **__: None)
         cv2.setMouseCallback("Ocular Parking System", self.mouse_events)
 
@@ -91,7 +91,7 @@ class Inference:
             if cv2.pointPolygonTest(contour=contour, pt=(x, y), measureDist=False) >= 0:
                 if boolDebug:
                     print(f"Removed:\n{contour}")
-                contours.remove(contour)
+                self.remove_np_array_from_list(contours, contour)
             else:
                 pass
 
@@ -164,7 +164,7 @@ class Inference:
         _, self.img = self.cap.read()
         self.img_display = np.copy(self.img)
         # Trackbar Callbacks
-        self.ticketMode = cv2.getTrackbarPos('Ticket Mode', 'Ocular Parking System')
+        self.ticketMode = cv2.getTrackbarPos('Reservation Mode', 'Ocular Parking System')
         self.updateTimeSec = cv2.getTrackbarPos('Frames Per Detection', 'Ocular Parking System')
         # Frame Skipping
         if (self.frameCounter == 0) | (
