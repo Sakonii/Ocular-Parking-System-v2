@@ -1,89 +1,32 @@
 import numpy as np
 from cv2 import cv2
 
-from fastai.vision import (
-    open_image,
-    image2np,
-    defaults,
-    create_body,
-    models,
-    torch,
-    pil2tensor,
-    Image,
-)
-from functions.model import RetinaNet, process_output, nms
+from detectron2 import model_zoo
+from detectron2.engine import DefaultPredictor
+from detectron2.config import get_cfg
+from detectron2.utils.visualizer import Visualizer
+from detectron2.data import MetadataCatalog
 
 
 class Detection:
     "A Wrapper for Detection related objects"
 
-    def __init__(
-        self, model_pth, path_to_weights="./models/",
-    ):
-        self.model_path = path_to_weights + model_pth
+    def __init__(self, modelWeights, cfgPath):
         # Load Detection Model
-        defaults.device = torch.device("cpu")
-        self.encoder = create_body(models.resnet50, cut=-2)
-        self.model = RetinaNet(self.encoder, 21, final_bias=-4)
-        self.state_dict = torch.load(self.model_path, map_location="cpu")
-        self.model.load_state_dict(self.state_dict["model"], strict=False)
-        self.model.eval()
-        # Prediction Variables Initialization
-        self.model_pred = None
-        self.bboxes = None
-        self.scores = None
-        self.preds = None
-        # List of Prediction Classes
-        self.classes = [
-            "background",
-            "aeroplane",
-            "bicycle",
-            "bird",
-            "boat",
-            "bottle",
-            "bus",
-            "car",
-            "cat",
-            "chair",
-            "cow",
-            "diningtable",
-            "dog",
-            "horse",
-            "motorbike",
-            "person",
-            "pottedplant",
-            "sheep",
-            "sofa",
-            "train",
-            "tvmonitor",
-        ]
-
-    def supress_outputs(self):
-        "Apply Non-Max Supression"
-        if len(self.preds) != 0:
-            "If any detection"
-            to_keep = nms(self.bboxes, self.scores)
-            self.bboxes, self.preds, self.scores = (
-                self.bboxes[to_keep].cpu(),
-                self.preds[to_keep].cpu(),
-                self.scores[to_keep].cpu(),
-            )
-            t_sz = torch.Tensor([*self.img_model.size])[None].float()
-            self.bboxes[:, :2] = self.bboxes[:, :2] - self.bboxes[:, 2:] / 2
-            self.bboxes[:, :2] = (self.bboxes[:, :2] + 1) * t_sz / 2
-            self.bboxes[:, 2:] = self.bboxes[:, 2:] * t_sz
-            self.bboxes = self.bboxes.long()
-
-    def np_to_tensor(self):
-        "Convert np.ndarray to Pytorch Compatible Image"
-        self.img_display = np.copy(self.img)
-        self.img_model = Image(pil2tensor(self.img, np.float32).div_(255))
+        self.cfg = get_cfg()
+        self.cfg.merge_from_file(model_zoo.get_config_file(cfgPath))
+        self.cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.5  # set detection threshold
+        self.cfg.MODEL.WEIGHTS = modelWeights
+        self.cfg.MODEL.DEVICE = "cpu"
+        self.predict = DefaultPredictor(self.cfg)
 
     def tensor_to_np(self):
         "Convert Tensors to OpenCV Comaptible Types"
-        # self.img = image2np(self.img.data * 255).astype(np.uint8)
-        # cv2.cvtColor(src=self.img, dst=self.img, code=cv2.COLOR_BGR2RGB)
-        # self.img_display = np.copy(self.img)
+        # Convert to np.ndarray
+        self.bboxes = self.outputs["instances"].pred_boxes.tensor.numpy().astype(int)
+        self.preds = self.outputs["instances"].pred_classes.numpy().astype(int)
+        self.scores = self.outputs["instances"].scores.numpy().astype(int)
+        # Convert to list (if not already)
         if not isinstance(self.bboxes, list):
             self.bboxes = self.bboxes.tolist()
             self.preds = self.preds.tolist()
@@ -91,17 +34,13 @@ class Detection:
         # Convert bboxes to list of top-left and bottom right co-ordinates
         _bboxes = []
         for _bbox in self.bboxes:
-            top_left = (_bbox[1], _bbox[0])
-            bottom_right = (
-                _bbox[1] + int(_bbox[3] / 2),
-                _bbox[0] + int(_bbox[2] / 1.5),
-            )
+            top_left = (_bbox[0], _bbox[1])
+            bottom_right = (_bbox[2], _bbox[3])
             _bboxes.append([top_left, bottom_right])
         self.bboxes = _bboxes
 
     def show(self):
         "Displays content input image and its corresponding detected objects"
-
         for bbox in self.bboxes:
             top_left = bbox[0]
             bottom_right = bbox[1]
@@ -120,22 +59,20 @@ class Detection:
         cv2.waitKey(0)
         cv2.destroyAllWindows()
 
+    def draw_detections(self, img):
+        "Displays content input image and its corresponding detected torch objects"
+        v = Visualizer(
+            img[:, :, ::-1], MetadataCatalog.get(self.cfg.DATASETS.TRAIN[0]), scale=1.2
+        )
+        v = v.draw_instance_predictions(self.outputs["instances"])
+        return v.get_image()[:, :, ::-1]
+
     def start_detection(self, img):
         "Updates and Returns bboxes, preds, scores and classes for next video frame"
         self.img = img
-        self.np_to_tensor()
+        self.img_display = np.copy(self.img)
         # Model Prediction
-        with torch.no_grad():
-            self.model_pred = self.model(self.img_model.data.unsqueeze_(0))
-        self.bboxes, self.scores, self.preds = process_output(
-            self.model_pred, i=0, detect_thresh=0.51
-        )
-        self.supress_outputs()
+        self.outputs = self.predict(img)
         self.tensor_to_np()
         # self.show()
-        return (
-            self.bboxes,
-            self.preds,
-            self.scores,
-            self.classes,
-        )
+        return (self.bboxes, self.preds, self.scores)

@@ -6,7 +6,7 @@ from cv2 import cv2
 
 
 def main():
-    detection = Detection(model_pth=args.model_detection)
+    detection = Detection(modelWeights=args.model_detection, cfgPath= args.cfg_path)
     Inference(
         content_video=args.video, model=detection
     ).start_inference()
@@ -24,8 +24,14 @@ if __name__ == "__main__":
     parser.add_argument(
         "--model_detection",
         type=str,
-        default="detection_retina_256.pth",
-        help="Pre-trained Weights for RetinNet Detection",
+        default="http://dl.fbaipublicfiles.com/detectron2/COCO-Detection/faster_rcnn_R_50_FPN_3x/137849458/model_final_280758.pkl",
+        help="Pre-trained Weights for Detectron Detection",
+    )
+    parser.add_argument(
+        "--cfg_path",
+        type=str,
+        default="/configs/faster_rcnn_R_50_FPN_3x.yaml",
+        help="Path to model cfg file relative to 'detectron2/model_zoo' ",
     )
     args = parser.parse_args()
 

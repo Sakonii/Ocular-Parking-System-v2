@@ -1,6 +1,8 @@
 import math
 import numpy as np
 from cv2 import cv2
+from detectron2.utils.visualizer import Visualizer
+from detectron2.data import MetadataCatalog
 
 
 class UI:
@@ -25,10 +27,7 @@ class Inference:
     "A Wrapper for Inference"
 
     def __init__(
-        self,
-        model,
-        path_to_input="./img_input/",
-        content_video="img.png",
+        self, model, path_to_input="./img_input/", content_video="img.png",
     ):
         self.cap = cv2.VideoCapture(path_to_input + content_video)
         _, self.reference_img = self.cap.read()  # First Frame OF Video
@@ -42,8 +41,16 @@ class Inference:
         # This will be the default window for inference
         cv2.namedWindow(winname="Ocular Parking System")
         # Trackbar Callbacks
-        cv2.createTrackbar("Reservation Mode", "Ocular Parking System", 0, 1, lambda *_, **__: None)
-        cv2.createTrackbar("Frames Per Detection", "Ocular Parking System", 1, 10, lambda *_, **__: None)
+        cv2.createTrackbar(
+            "Reservation Mode", "Ocular Parking System", 0, 1, lambda *_, **__: None
+        )
+        cv2.createTrackbar(
+            "Detect Threshold", "Ocular Parking System", 50, 100, lambda *_, **__: None
+        )
+        cv2.createTrackbar(
+            "Frames / Detection", "Ocular Parking System", 1, 10, lambda *_, **__: None
+        )
+
         cv2.setMouseCallback("Ocular Parking System", self.mouse_events)
 
     def draw_contours(self, contours, img, color=(75, 150, 0)):
@@ -164,8 +171,15 @@ class Inference:
         _, self.img = self.cap.read()
         self.img_display = np.copy(self.img)
         # Trackbar Callbacks
-        self.ticketMode = cv2.getTrackbarPos('Reservation Mode', 'Ocular Parking System')
-        self.updateTimeSec = cv2.getTrackbarPos('Frames Per Detection', 'Ocular Parking System')
+        self.ticketMode = cv2.getTrackbarPos(
+            "Reservation Mode", "Ocular Parking System"
+        )
+        self.updateTimeSec = cv2.getTrackbarPos(
+            "Frames / Detection", "Ocular Parking System"
+        )
+        self.detection.cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = (
+            cv2.getTrackbarPos("Detect Threshold", "Ocular Parking System")
+        ) / 100
         # Frame Skipping
         if (self.frameCounter == 0) | (
             self.frameCounter % (30 * self.updateTimeSec) == 0
@@ -177,6 +191,7 @@ class Inference:
             self.frameCounter % (30 * self.updateTimeSec) <= 40
         ):
             self.draw_bboxes(self.img_display, color=(0, 200, 255))
+            # self.img_display = self.detection.draw_detections(self.img_display)
         self.frameCounter += 1
         # Draw Green Parkable Regions
         self.draw_contours(
@@ -187,10 +202,12 @@ class Inference:
             contours=self.ui.bboxesRed, img=self.img_display, color=(0, 50, 255),
         )
         # Print Occupancy Information
-        print(f'\n\n\n\nTotal parking Spots   = {len(self.ui.bboxesGreen)}')
-        print(f'No. of Spots Occupied = {len(self.ui.bboxesRed)}')
-        print(f'Total available Spots = {len(self.ui.bboxesGreen) - len(self.ui.bboxesRed)}')
-        print(f'\nMiddle-Mouse Click to reserve a space')
+        print(f"\n\n\n\nTotal parking Spots   = {len(self.ui.bboxesGreen)}")
+        print(f"No. of Spots Occupied = {len(self.ui.bboxesRed)}")
+        print(
+            f"Total available Spots = {len(self.ui.bboxesGreen) - len(self.ui.bboxesRed)}"
+        )
+        print(f"\nMiddle-Mouse Click to reserve a space")
         # Park-able Region Detection Window
         cv2.imshow(winname="Ocular Parking System", mat=self.img_display)
         if cv2.waitKey(60) & 0xFF == ord("q"):
@@ -249,9 +266,8 @@ class Inference:
             self.remove_contour_containing_point(x, y, self.ui.bboxesGreen)
             self.remove_contour_containing_point(x, y, self.ui.bboxesRed)
 
-        if  event == cv2.EVENT_MBUTTONDOWN:
+        if event == cv2.EVENT_MBUTTONDOWN:
             "Reserve a parking space"
-            print('hmm')
             self.ui.reset_mouse_coords()
             tempContour = self.contour_containing_point(x, y, self.ui.bboxesGreen)
             if tempContour == []:
