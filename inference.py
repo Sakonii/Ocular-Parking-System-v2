@@ -45,7 +45,7 @@ class Inference:
             "Reservation Mode", "Ocular Parking System", 0, 1, lambda *_, **__: None
         )
         cv2.createTrackbar(
-            "Detect Threshold", "Ocular Parking System", 50, 100, lambda *_, **__: None
+            "Detect Threshold", "Ocular Parking System", 60, 100, self.detection.update_threshold
         )
         cv2.createTrackbar(
             "Frames / Detection", "Ocular Parking System", 1, 10, lambda *_, **__: None
@@ -186,13 +186,6 @@ class Inference:
         ):
             self.detection.start_detection(self.img)
             self.occupied_space_detection()
-        # Draw Yellow Detected Bboxes
-        if (self.frameCounter == 0) | (
-            self.frameCounter % (30 * self.updateTimeSec) <= 40
-        ):
-            self.draw_bboxes(self.img_display, color=(0, 200, 255))
-            # self.img_display = self.detection.draw_detections(self.img_display)
-        self.frameCounter += 1
         # Draw Green Parkable Regions
         self.draw_contours(
             contours=self.ui.bboxesGreen, img=self.img_display, color=(75, 150, 0),
@@ -201,6 +194,13 @@ class Inference:
         self.draw_contours(
             contours=self.ui.bboxesRed, img=self.img_display, color=(0, 50, 255),
         )
+        # Draw Yellow Detected Bboxes
+        if (self.frameCounter == 0) | (
+            self.frameCounter % (30 * self.updateTimeSec) <= 40
+        ):
+            # self.draw_bboxes(self.img_display, color=(0, 200, 255))
+             self.img_display = self.detection.draw_detections(self.img_display)
+        self.frameCounter += 1
         # Print Occupancy Information
         print(f"\n\n\n\nTotal parking Spots   = {len(self.ui.bboxesGreen)}")
         print(f"No. of Spots Occupied = {len(self.ui.bboxesRed)}")

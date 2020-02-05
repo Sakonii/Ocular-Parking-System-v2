@@ -298,7 +298,7 @@ class VisImage:
 
 
 class Visualizer:
-    def __init__(self, img_rgb, metadata, scale=1.0, instance_mode=ColorMode.IMAGE):
+    def __init__(self, img_rgb, metadata, scale=1.0, instance_mode=ColorMode.SEGMENTATION):
         """
         Args:
             img_rgb: a numpy array of shape (H, W, C), where H and W correspond to
@@ -345,7 +345,7 @@ class Visualizer:
 
         if self._instance_mode == ColorMode.SEGMENTATION and self.metadata.get("thing_colors"):
             colors = [
-                self._jitter([x / 255 for x in self.metadata.thing_colors[c]]) for c in classes
+                self._jitter([x / 255 for x in self.metadata.thing_colors[c-8]]) for c in classes
             ]
             alpha = 0.8
         else:

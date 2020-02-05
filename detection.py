@@ -15,9 +15,13 @@ class Detection:
         # Load Detection Model
         self.cfg = get_cfg()
         self.cfg.merge_from_file(model_zoo.get_config_file(cfgPath))
-        self.cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.5  # set detection threshold
+        self.cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.6  # set detection threshold
         self.cfg.MODEL.WEIGHTS = modelWeights
         self.cfg.MODEL.DEVICE = "cpu"
+        self.predict = DefaultPredictor(self.cfg)
+
+    def update_threshold(self):
+        " Updates Detection Threshold On Trackbar Event"
         self.predict = DefaultPredictor(self.cfg)
 
     def tensor_to_np(self):
@@ -62,7 +66,7 @@ class Detection:
     def draw_detections(self, img):
         "Displays content input image and its corresponding detected torch objects"
         v = Visualizer(
-            img[:, :, ::-1], MetadataCatalog.get(self.cfg.DATASETS.TRAIN[0]), scale=1.2
+            img[:, :, ::-1], MetadataCatalog.get(self.cfg.DATASETS.TRAIN[0]), scale=1.0
         )
         v = v.draw_instance_predictions(self.outputs["instances"])
         return v.get_image()[:, :, ::-1]
