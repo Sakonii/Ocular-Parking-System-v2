@@ -20,8 +20,9 @@ class Detection:
         self.cfg.MODEL.DEVICE = "cpu"
         self.predict = DefaultPredictor(self.cfg)
 
-    def update_threshold(self):
+    def update_threshold(self, threshValue):
         " Updates Detection Threshold On Trackbar Event"
+        self.cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = threshValue / 100
         self.predict = DefaultPredictor(self.cfg)
 
     def tensor_to_np(self):

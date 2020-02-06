@@ -1,8 +1,6 @@
 import math
 import numpy as np
 from cv2 import cv2
-from detectron2.utils.visualizer import Visualizer
-from detectron2.data import MetadataCatalog
 
 
 class UI:
@@ -45,10 +43,14 @@ class Inference:
             "Reservation Mode", "Ocular Parking System", 0, 1, lambda *_, **__: None
         )
         cv2.createTrackbar(
-            "Detect Threshold", "Ocular Parking System", 60, 100, self.detection.update_threshold
+            "Detect Threshold",
+            "Ocular Parking System",
+            60,
+            100,
+            self.detection.update_threshold,
         )
         cv2.createTrackbar(
-            "Frames / Detection", "Ocular Parking System", 1, 10, lambda *_, **__: None
+            "Frames / Detection", "Ocular Parking System", 3, 10, lambda *_, **__: None
         )
 
         cv2.setMouseCallback("Ocular Parking System", self.mouse_events)
@@ -69,7 +71,7 @@ class Inference:
         for bbox in self.detection.bboxes:
             top_left = bbox[0]
             bottom_right = bbox[1]
-            # Default Color: Green
+            # Default Color: Yellow
             cv2.rectangle(
                 img,
                 top_left,
@@ -78,8 +80,6 @@ class Inference:
                 thickness=2,
                 lineType=cv2.LINE_AA,
             )
-            # text = f"{classes[preds[i]]} {scores[i]}"
-            # cv2.putText(img, text, top_left, cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 2)
 
     def contour_containing_point(self, x, y, contours, boolDebug=False, bool=False):
         "Returns contour under which the co-ordinate lies"
@@ -110,10 +110,16 @@ class Inference:
         center_y = int(bbox[1][1] - (bbox[1][1] - bbox[0][1]) / 2)
         center_y_bottom = bbox[1][1]
         # Generate 10 linspaced y-coordinates
-        ysToCheck = np.linspace(center_y_bottom, center_y, num=10, dtype=int)
+        ysToCheck = np.linspace(center_y_bottom, center_y, num=8, dtype=int)
         pointsToCheck = []
         for yToCheck in ysToCheck:
             pointsToCheck.append([center_x, yToCheck])
+            pointsToCheck.append(
+                [center_x - int((center_x - bbox[0][0]) / 4), yToCheck]
+            )
+            pointsToCheck.append(
+                [center_x + int((center_x - bbox[0][0]) / 4), yToCheck]
+            )
         # Print Co-ordinates
         if boolDebug:
             print(f"Center: {center_x, center_y}")
@@ -199,7 +205,7 @@ class Inference:
             self.frameCounter % (30 * self.updateTimeSec) <= 40
         ):
             # self.draw_bboxes(self.img_display, color=(0, 200, 255))
-             self.img_display = self.detection.draw_detections(self.img_display)
+            self.img_display = self.detection.draw_detections(self.img_display)
         self.frameCounter += 1
         # Print Occupancy Information
         print(f"\n\n\n\nTotal parking Spots   = {len(self.ui.bboxesGreen)}")
