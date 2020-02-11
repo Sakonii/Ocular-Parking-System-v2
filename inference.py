@@ -157,16 +157,17 @@ class Inference:
                 if not boolRedInNewFrame:
                     self.remove_np_array_from_list(self.ui.bboxesRed, bboxRed)
 
-        for bboxGreen in self.ui.bboxesGreen:  # for every bboxGreen
-            if np.any(bboxGreen == self.ui.bboxesRed):  # if bboxGreen in bboxesRed
-                continue
-            for bboxYellow in self.detection.bboxes:  # for every bboxYellow
-                pointsToCheck = self.generate_points_to_check(bboxYellow)
+        for bboxYellow in self.detection.bboxes:  # for every bboxYellow
+            pointsToCheck = self.generate_points_to_check(bboxYellow)
+            for bboxGreen in self.ui.bboxesGreen:  # for every bboxGreen
                 for point in pointsToCheck:  # for points: center to bottom-center
-                    if self.contour_containing_point(  # If point lies in bboxGreen
+                    if self.contour_containing_point(  # if point lies in bboxGreen
                         point[0], point[1], [bboxGreen], bool=True
                     ):
-                        self.ui.bboxesRed.append(bboxGreen)
+                        if not np.any(  # if bboxGreen not in bboxesRed
+                            bboxGreen == self.ui.bboxesRed
+                        ):
+                            self.ui.bboxesRed.append(bboxGreen)
                         break
                 else:
                     continue
