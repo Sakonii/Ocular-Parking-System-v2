@@ -10,6 +10,7 @@ black==19.10b0
 bleach==3.1.0
 blis==0.4.1
 Bottleneck==1.2.1
+branca==0.3.1
 cachetools==4.0.0
 certifi==2019.9.11
 cffi==1.13.2
@@ -28,6 +29,7 @@ django-crispy-forms==1.8.1
 entrypoints==0.3
 fastai==1.0.58
 fastprogress==0.1.21
+folium==0.10.1
 future==0.18.2
 fvcore==0.1.dev200204
 google-auth==1.11.0

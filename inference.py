@@ -1,6 +1,7 @@
 import math
 import numpy as np
 from cv2 import cv2
+from map import Map
 
 
 class UI:
@@ -34,6 +35,7 @@ class Inference:
         # Instantiate / Import UI Components and Detection Model
         self.ui = UI()
         self.detection = model
+        self.map = Map()
         # Frame Counter For FPS
         self.frameCounter = 0
         # This will be the default window for inference
@@ -173,7 +175,7 @@ class Inference:
                     continue
                 break
 
-    def video_inference(self):
+    def video_inference(self, generateMap=True):
         "Inference For The Main Program"
         _, self.img = self.cap.read()
         self.img_display = np.copy(self.img)
@@ -193,6 +195,10 @@ class Inference:
         ):
             self.detection.start_detection(self.img)
             self.occupied_space_detection()
+            if generateMap:
+                availableSpots = len(self.ui.bboxesGreen) - len(self.ui.bboxesRed)
+                self.map.locationsData.emptySpots[0] = availableSpots
+                self.map.generate()
         # Draw Green Parkable Regions
         self.draw_contours(
             contours=self.ui.bboxesGreen, img=self.img_display, color=(75, 150, 0),
