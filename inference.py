@@ -197,7 +197,7 @@ class Inference:
             self.occupied_space_detection()
             if generateMap:
                 availableSpots = len(self.ui.bboxesGreen) - len(self.ui.bboxesRed)
-                self.map.locationsData.emptySpots[0] = availableSpots
+                self.map.locationsData.emptySpots[3] = availableSpots
                 self.map.generate()
         # Draw Green Parkable Regions
         self.draw_contours(

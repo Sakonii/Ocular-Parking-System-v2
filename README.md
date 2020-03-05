@@ -28,6 +28,12 @@ python3.7 -m pip install --user folium
 # Jupyter
 python3.7 -m pip install --user jupyterlab
 sudo apt install jupyter-notebook
+
+# Detectron2-0.1.1
+# build detectron 2 from source:
+https://github.com/facebookresearch/detectron2/blob/master/INSTALL.md
+# update 'detectron2/model_zoo/config' as in:
+https://drive.google.com/drive/folders/14rL_GI_EleuqtyBow_AfudSd7llisV9u?usp=sharing
 ```
 
 ## Inference
