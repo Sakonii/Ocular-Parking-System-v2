@@ -19,7 +19,7 @@ if __name__ == "__main__":
         "--video",
         type=str,
         default="videoplayback2.mp4",
-        help="Enter the reference image file name located at ./img_input",
+        help="Enter the image / video file name located at ./img_input",
     )
     parser.add_argument(
         "--model_detection",

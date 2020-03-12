@@ -15,7 +15,7 @@ class Detection:
         # Load Detection Model
         self.cfg = get_cfg()
         self.cfg.merge_from_file(model_zoo.get_config_file(cfgPath))
-        self.cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.6  # set detection threshold
+        self.cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.8  # set detection threshold
         self.cfg.MODEL.WEIGHTS = modelWeights
         self.cfg.MODEL.DEVICE = "cpu"
         self.predict = DefaultPredictor(self.cfg)

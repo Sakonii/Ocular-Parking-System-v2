@@ -47,7 +47,7 @@ class Inference:
         cv2.createTrackbar(
             "Detect Threshold",
             "Ocular Parking System",
-            60,
+            80,
             100,
             self.detection.update_threshold,
         )
