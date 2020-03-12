@@ -58,10 +58,6 @@ python3.7 main.py --video videoplayback2.mp4
 
 <img src="https://github.com/Skelliger7/Ocular-Parking-System-v2/raw/master/vid_output/2_inference.gif" width="320" height="289">
 
-* Reservation
-
-<img src="https://github.com/Skelliger7/Ocular-Parking-System-v2/raw/master/vid_output/3_reservation.gif" width="320" height="321">
-
 * Overall
 
 <img src="https://github.com/Skelliger7/Ocular-Parking-System-v2/blob/master/vid_output/4_overall.gif?raw=true" width="320" height="321">

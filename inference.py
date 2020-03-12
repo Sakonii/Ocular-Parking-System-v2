@@ -198,6 +198,7 @@ class Inference:
             if generateMap:
                 availableSpots = len(self.ui.bboxesGreen) - len(self.ui.bboxesRed)
                 self.map.locationsData.emptySpots[3] = availableSpots
+                self.map.locationsData.totalSpots[3] = len(self.ui.bboxesGreen)
                 self.map.generate()
         # Draw Green Parkable Regions
         self.draw_contours(
@@ -294,8 +295,8 @@ class Inference:
             # Check for 4 clicks (of a rectangle) for LBUTTON event
             self.mouse_to_region()
 
-    def start_inference(self):
+    def start_inference(self, generateMap=True):
         "Mouse-Events Ready User Interface"
         self.parkable_region_inference()
         while self.cap.isOpened():
-            self.video_inference()
+            self.video_inference(generateMap)

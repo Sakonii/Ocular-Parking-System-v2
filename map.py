@@ -12,7 +12,7 @@ class Map:
     ):
         self.htmlLocation = htmlLocation
         # load co-ordinate data
-        self.map_cols = ["id", "name", "north", "east", "emptySpots"]
+        self.map_cols = ["id", "name", "north", "east", "emptySpots", "totalSpots"]
         self.locationsData = pd.read_csv(
             "./folium_map/parking_lots.csv", header=None, names=self.map_cols
         )
@@ -21,20 +21,22 @@ class Map:
     def update_location(self, location, zoom_start=18):
         self.map = folium.Map(location=location, zoom_start=zoom_start)
 
-    def draw_marker(self, msg, locData, isAvailable=False):
+    def draw_marker(self, msgPre, msgPost, locData, isAvailable=False):
         color = "green" if isAvailable else "red"
         folium.Marker(
             [locData.north, locData.east],
-            popup=(msg + str(locData.emptySpots)),
+            popup=(
+                msgPre + str(locData.emptySpots) + msgPost + str(locData.totalSpots)
+            ),
             tooltip=locData.name,
             icon=folium.Icon(prefix="fa", icon="car", color=color),
         ).add_to(self.map)
 
-    def generate(self, msg="Available Spots: "):
+    def generate(self, msgPre="Available: ", msgPost="/"):
         for locData in self.locationsData.itertuples():
             if locData.emptySpots:
-                self.draw_marker(msg, locData, isAvailable=True)
+                self.draw_marker(msgPre, msgPost, locData, isAvailable=True)
             else:
-                self.draw_marker(msg, locData, isAvailable=False)
+                self.draw_marker(msgPre, msgPost, locData, isAvailable=False)
 
         self.map.save("./folium_map/map.html")

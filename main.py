@@ -9,7 +9,7 @@ def main():
     detection = Detection(modelWeights=args.model_detection, cfgPath= args.cfg_path)
     Inference(
         content_video=args.video, model=detection
-    ).start_inference()
+    ).start_inference(generateMap=True)
     return
 
 
