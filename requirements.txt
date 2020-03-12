@@ -23,7 +23,7 @@ cymem==2.0.2
 Cython==0.29.14
 decorator==4.4.0
 defusedxml==0.6.0
-Django==3.0
+Django==3.0.3
 django-address==0.2.1
 django-crispy-forms==1.8.1
 entrypoints==0.3
