@@ -30,8 +30,8 @@ if __name__ == "__main__":
     parser.add_argument(
         "--cfg_path",
         type=str,
-        default="/configs/faster_rcnn_R_50_FPN_3x.yaml",
-        help="Path to model cfg file relative to 'detectron2/model_zoo' ",
+        default="COCO-Detection/faster_rcnn_R_50_FPN_3x.yaml",
+        help="Path to model cfg file relative to 'detectron2/model_zoo/configs' ",
     )
     args = parser.parse_args()
 
