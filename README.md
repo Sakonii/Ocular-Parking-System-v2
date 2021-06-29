@@ -25,19 +25,19 @@ Dependencies installation under pip package manager
 ``` bash
 
 # Pytorch
-sudo -H python3.7 -m pip install torch==1.3.0+cpu torchvision==0.4.1+cpu -f https://download.pytorch.org/whl/torch_stable.html
+sudo -H python3 -m pip install torch==1.3.0+cpu torchvision==0.4.1+cpu -f https://download.pytorch.org/whl/torch_stable.html
 # For GPU or other version: https://pytorch.org/get-started/locally/
 
 # OpenCV-4.1.1.26
-python3.7 -m pip install --user opencv-python
+python3 -m pip install --user opencv-python
 
 # folium-0.10.1
-python3.7 -m pip install --user folium
+python3 -m pip install --user folium
 
 # Detectron2-0.1.1
-python3.7 -m pip install cython
-python3.7 -m pip install -U 'git+https://github.com/cocodataset/cocoapi.git#subdirectory=PythonAPI'
-python3.7 -m pip install 'git+https://github.com/facebookresearch/detectron2.git'
+python3 -m pip install cython
+python3 -m pip install -U 'git+https://github.com/cocodataset/cocoapi.git#subdirectory=PythonAPI'
+python3 -m pip install 'git+https://github.com/facebookresearch/detectron2.git'
 # Or build from source: https://github.com/facebookresearch/detectron2/blob/master/INSTALL.md
 
 ```
@@ -46,7 +46,7 @@ python3.7 -m pip install 'git+https://github.com/facebookresearch/detectron2.git
 
 ``` bash
 # Example:
-python3.7 main.py --video videoplayback2.mp4
+python3 main.py --video videoplayback2.mp4
 
 # CLI Arguments:
 * '--video' : Filename of input video located at img_input directory
